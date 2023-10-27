@@ -110,3 +110,6 @@
 
 .dd-nochildren .dd-placeholder {
   display: none; }
+
+.dd-selected .dd-handle {
+  border: 1px solid red; }

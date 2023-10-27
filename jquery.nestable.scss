@@ -2,6 +2,7 @@ $nestable-root-class: dd;
 $nestable-list-class: dd-list;
 $nestable-item-class: dd-item;
 $nestable-drag-class: dd-dragel;
+$nestable-selected-class: dd-selected;
 $nestable-handle-class: dd-handle;
 $nestable-collapsed-class: dd-collapsed;
 $nestable-placeholder-class: dd-placeholder;
@@ -143,4 +144,8 @@ $nestable-empty-class: dd-empty;
 
 .#{$nestable-no-children-class} .#{$nestable-placeholder-class} {
   display: none;
+}
+
+.#{$nestable-selected-class} .#{$nestable-handle-class} {
+  border: 1px solid red;
 }

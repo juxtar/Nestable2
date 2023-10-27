@@ -34,6 +34,7 @@
         listClass: 'dd-list',
         itemClass: 'dd-item',
         dragClass: 'dd-dragel',
+        selectedClass: 'dd-selected',
         handleClass: 'dd-handle',
         contentClass: 'dd-content',
         collapsedClass: 'dd-collapsed',
@@ -100,6 +101,7 @@
             options.itemClass       = options.itemClass ? options.itemClass : options.rootClass + '-item';
             options.dragClass       = options.dragClass ? options.dragClass : options.rootClass + '-dragel';
             options.handleClass     = options.handleClass ? options.handleClass : options.rootClass + '-handle';
+            options.selectedClass   = options.selectedClass ? options.selectedClass : options.rootClass + '-selected';
             options.collapsedClass  = options.collapsedClass ? options.collapsedClass : options.rootClass + '-collapsed';
             options.placeClass      = options.placeClass ? options.placeClass : options.rootClass + '-placeholder';
             options.noDragClass     = options.noDragClass ? options.noDragClass : options.rootClass + '-nodrag';
@@ -719,8 +721,16 @@
             // fix for zepto.js
             //dragItem.after(this.placeEl).detach().appendTo(this.dragEl);
             dragItem.after(this.placeEl);
-            dragItem[0].parentNode.removeChild(dragItem[0]);
-            dragItem.appendTo(this.dragEl);
+            var selectedItems = this.el.find("." + this.options.selectedClass);
+            if (selectedItems.length == 0 || !dragItem.hasClass(this.options.selectedClass)) {
+                dragItem[0].parentNode.removeChild(dragItem[0]);
+                dragItem.appendTo(this.dragEl);
+            } else {
+                selectedItems.each((index, item) => {
+                    item.parentNode.removeChild(item);
+                    $(item).appendTo(this.dragEl);
+                });
+            }
 
             $(document.body).append(this.dragEl);
             this.dragEl.css({
@@ -736,6 +746,8 @@
                     this.dragDepth = depth;
                 }
             }
+
+            this.dragItem = dragItem;
         },
 
         //Create sublevel.
@@ -799,30 +811,35 @@
             //Get indexArray of item at drag start.
             var srcIndex = this.dragEl.data('indexOfItem');
 
-            var el = this.dragEl.children(this.options.itemNodeName).first();
+            var elements = this.dragEl.children(this.options.itemNodeName);
+            var el = this.dragItem;
 
-            el[0].parentNode.removeChild(el[0]);
+            if (this.mouse.lastY == this.mouse.startY &&
+                this.mouse.lastX == this.mouse.startX)
+            {
+                el.toggleClass(this.options.selectedClass);
+            }
 
             this.dragEl.remove(); //Remove dragEl, cause it can affect on indexing in html collection.
 
             //Before drag stop callback
-            var continueExecution = this.options.beforeDragStop.call(this, this.el, el, this.placeEl.parent());
+            var continueExecution = this.options.beforeDragStop.call(this, this.el, elements, this.placeEl.parent());
             if (typeof continueExecution !== 'undefined' && continueExecution === false) {
                 var parent = this.placeEl.parent();
                 this.placeEl.remove();
                 if (!parent.children().length) {
                     this.unsetParent(parent.parent());
                 }
-                this.restoreItemAtIndex(el, srcIndex);
+                this.restoreItemAtIndex(elements, srcIndex);
                 this.reset();
                 return;
             }
 
-            this.placeEl.replaceWith(el);
+            this.placeEl.replaceWith(elements);
 
             if (this.hasNewRoot) {
                 if (this.options.fixed === true) {
-                    this.restoreItemAtIndex(el, srcIndex);
+                    this.restoreItemAtIndex(elements, srcIndex);
                 }
                 else {
                     this.el.trigger('lostItem');
@@ -833,7 +850,7 @@
                 this.dragRootEl.trigger('change');
             }
 
-            this.options.callback.call(this, this.dragRootEl, el, position);
+            this.options.callback.call(this, this.dragRootEl, elements, position);
 
             this.reset();
         },
@@ -870,6 +887,8 @@
             if (!mouse.moving) {
                 mouse.dirAx = newAx;
                 mouse.moving = true;
+                if (!this.dragEl.children(opt.itemNodeName).first().hasClass(opt.selectedClass))
+                    this.el.find("." + opt.selectedClass).removeClass(opt.selectedClass);
                 return;
             }
 
