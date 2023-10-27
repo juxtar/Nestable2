@@ -2,6 +2,8 @@
  * Nestable jQuery Plugin - Copyright (c) 2014 Ramon Smit - https://github.com/RamonSmit/Nestable
  */
 
+import "./jquery.nestable.scss";
+
 (function($, window, document, undefined) {
     var hasTouch = 'ontouchstart' in document;
 
